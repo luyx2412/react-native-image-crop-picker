@@ -508,13 +508,13 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             @Override
             public void run() {
                 try {
-                    Bitmap bmp = validateVideo(path);
+                    // Bitmap bmp = validateVideo(path);
                     long modificationDate = new File(path).lastModified();
 //                    long duration = getVideoDuration(path);
 
                     WritableMap video = new WritableNativeMap();
-                    video.putInt("width", bmp.getWidth());
-                    video.putInt("height", bmp.getHeight());
+                    // video.putInt("width", bmp.getWidth());
+                    // video.putInt("height", bmp.getHeight());
                     video.putString("mime", mime);
                     video.putInt("size", (int) new File(path).length());
 //                    video.putInt("duration", (int) duration);
