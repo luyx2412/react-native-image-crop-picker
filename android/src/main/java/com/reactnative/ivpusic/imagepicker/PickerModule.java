@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import androidx.core.app.ActivityCompat;
@@ -489,7 +490,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
         return bmp;
     }
-    
+
     private static Long getVideoDuration(String path) {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(path);
@@ -498,43 +499,64 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     }
 
     private void getVideo(final Activity activity, final String path, final String mime) throws Exception {
-        validateVideo(path);
-        final String compressedVideoPath = getTmpDir(activity) + "/" + UUID.randomUUID().toString() + ".mp4";
+        // validateVideo(path);
+        // final String compressedVideoPath = getTmpDir(activity) + "/" + UUID.randomUUID().toString() + ".mp4";
+
+        Log.d("react-native-image-crop-picker getVideo with path", path);
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                compression.compressVideo(activity, options, path, compressedVideoPath, new PromiseImpl(new Callback() {
-                    @Override
-                    public void invoke(Object... args) {
-                        String videoPath = (String) args[0];
+                try {
+                    Bitmap bmp = validateVideo(path);
+                    long modificationDate = new File(path).lastModified();
+//                    long duration = getVideoDuration(path);
 
-                        try {
-                            Bitmap bmp = validateVideo(videoPath);
-                            long modificationDate = new File(videoPath).lastModified();
-                            long duration = getVideoDuration(videoPath);
+                    WritableMap video = new WritableNativeMap();
+                    video.putInt("width", bmp.getWidth());
+                    video.putInt("height", bmp.getHeight());
+                    video.putString("mime", mime);
+                    video.putInt("size", (int) new File(path).length());
+//                    video.putInt("duration", (int) duration);
+                    video.putString("path", "file://" + path);
+                    video.putString("modificationDate", String.valueOf(modificationDate));
 
-                            WritableMap video = new WritableNativeMap();
-                            video.putInt("width", bmp.getWidth());
-                            video.putInt("height", bmp.getHeight());
-                            video.putString("mime", mime);
-                            video.putInt("size", (int) new File(videoPath).length());
-                            video.putInt("duration", (int) duration);
-                            video.putString("path", "file://" + videoPath);
-                            video.putString("modificationDate", String.valueOf(modificationDate));
+                    resultCollector.notifySuccess(video);
+                } catch (Exception e) {
+                    resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, e);
+                }
 
-                            resultCollector.notifySuccess(video);
-                        } catch (Exception e) {
-                            resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, e);
-                        }
-                    }
-                }, new Callback() {
-                    @Override
-                    public void invoke(Object... args) {
-                        WritableNativeMap ex = (WritableNativeMap) args[0];
-                        resultCollector.notifyProblem(ex.getString("code"), ex.getString("message"));
-                    }
-                }));
+                // compression.compressVideo(activity, options, path, compressedVideoPath, new PromiseImpl(new Callback() {
+                //     @Override
+                //     public void invoke(Object... args) {
+                //         String videoPath = (String) args[0];
+
+                //         try {
+                //             Bitmap bmp = validateVideo(videoPath);
+                //             long modificationDate = new File(videoPath).lastModified();
+                //             long duration = getVideoDuration(videoPath);
+
+                //             WritableMap video = new WritableNativeMap();
+                //             video.putInt("width", bmp.getWidth());
+                //             video.putInt("height", bmp.getHeight());
+                //             video.putString("mime", mime);
+                //             video.putInt("size", (int) new File(videoPath).length());
+                //             video.putInt("duration", (int) duration);
+                //             video.putString("path", "file://" + videoPath);
+                //             video.putString("modificationDate", String.valueOf(modificationDate));
+
+                //             resultCollector.notifySuccess(video);
+                //         } catch (Exception e) {
+                //             resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, e);
+                //         }
+                //     }
+                // }, new Callback() {
+                //     @Override
+                //     public void invoke(Object... args) {
+                //         WritableNativeMap ex = (WritableNativeMap) args[0];
+                //         resultCollector.notifyProblem(ex.getString("code"), ex.getString("message"));
+                //     }
+                // }));
             }
         }).run();
     }
