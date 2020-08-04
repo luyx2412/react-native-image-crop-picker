@@ -516,7 +516,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                     // video.putInt("width", bmp.getWidth());
                     // video.putInt("height", bmp.getHeight());
                     video.putString("mime", mime);
-                    video.putInt("size", (int) new File(path).length());
+                    video.putDouble("size", new File(path).length();
 //                    video.putInt("duration", (int) duration);
                     video.putString("path", "file://" + path);
                     video.putString("modificationDate", String.valueOf(modificationDate));
